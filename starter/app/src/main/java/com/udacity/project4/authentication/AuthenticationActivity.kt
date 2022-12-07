@@ -1,6 +1,8 @@
 package com.udacity.project4.authentication
 
 import android.os.Bundle
+import android.widget.Button
+import com.firebase.ui.auth.AuthUI
 import androidx.appcompat.app.AppCompatActivity
 import com.udacity.project4.R
 
@@ -9,6 +11,7 @@ import com.udacity.project4.R
  * signed in users to the RemindersActivity.
  */
 class AuthenticationActivity : AppCompatActivity() {
+    val SIGN_IN_CODE = 1001
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -19,6 +22,20 @@ class AuthenticationActivity : AppCompatActivity() {
 
 //          TODO: a bonus is to customize the sign in flow to look nice using :
         //https://github.com/firebase/FirebaseUI-Android/blob/master/auth/README.md#custom-layout
+        findViewById<Button>(R.id.authenticate_button).setOnClickListener {
+            startAuthenticationWorkFlow()
+        }
+    }
 
+    private fun startAuthenticationWorkFlow() {
+        val providers = arrayListOf(
+            AuthUI.IdpConfig.EmailBuilder().build(), AuthUI.IdpConfig.GoogleBuilder().build()
+        )
+
+        startActivityForResult(
+            AuthUI.getInstance().createSignInIntentBuilder().setAvailableProviders(
+                providers
+            ).build(), SIGN_IN_CODE
+        )
     }
 }
