@@ -1,10 +1,15 @@
 package com.udacity.project4.authentication
 
+import android.app.Activity
+import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.widget.Button
 import com.firebase.ui.auth.AuthUI
 import androidx.appcompat.app.AppCompatActivity
+import com.firebase.ui.auth.IdpResponse
 import com.udacity.project4.R
+import com.udacity.project4.locationreminders.RemindersActivity
 
 /**
  * This class should be the starting point of the app, It asks the users to sign in / register, and redirects the
@@ -37,5 +42,18 @@ class AuthenticationActivity : AppCompatActivity() {
                 providers
             ).build(), SIGN_IN_CODE
         )
+    }
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == SIGN_IN_CODE) {
+            val response = IdpResponse.fromResultIntent(data)
+            if (resultCode == Activity.RESULT_OK) {
+                val intent = Intent(this, RemindersActivity::class.java)
+                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+                startActivity(intent)
+            } else {
+                Log.i("Auth Failed", "Sign in unsuccessful ${response?.error?.errorCode}")
+            }
+        }
     }
 }
