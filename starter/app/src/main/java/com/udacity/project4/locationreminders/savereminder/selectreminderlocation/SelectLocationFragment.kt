@@ -2,29 +2,25 @@ package com.udacity.project4.locationreminders.savereminder.selectreminderlocati
 
 
 import android.Manifest
-import android.app.Activity
-import android.content.Intent
-import android.content.IntentSender
 import android.content.pm.PackageManager
 import android.content.res.Resources
 import android.os.Bundle
 import android.util.Log
 import android.view.*
+import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.databinding.DataBindingUtil
-import com.google.android.gms.common.api.ApiException
-import com.google.android.gms.common.api.ResolvableApiException
-import com.google.android.gms.location.*
+import com.google.android.gms.location.FusedLocationProviderClient
+import androidx.navigation.fragment.findNavController
+import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.*
-import com.google.android.material.snackbar.Snackbar
 import com.udacity.project4.R
 import com.udacity.project4.base.BaseFragment
-import com.udacity.project4.base.NavigationCommand
 import com.udacity.project4.databinding.FragmentSelectLocationBinding
 import com.udacity.project4.locationreminders.savereminder.SaveReminderViewModel
 import com.udacity.project4.utils.EspressoIdlingResource.wrapEspressoIdlingResource
@@ -32,7 +28,7 @@ import com.udacity.project4.utils.setDisplayHomeAsUpEnabled
 import org.koin.android.ext.android.inject
 import java.util.*
 
-class SelectLocationFragment : BaseFragment(),OnMapReadyCallback {
+class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
 
     //Use Koin to get the view model of the SaveReminder
     override val _viewModel: SaveReminderViewModel by inject()
@@ -41,7 +37,6 @@ class SelectLocationFragment : BaseFragment(),OnMapReadyCallback {
     private lateinit var selectedMarker: Marker
     private lateinit var selectedPointOfInterest: PointOfInterest
     private lateinit var fusedLocationClient: FusedLocationProviderClient
-
 
 
     override fun onCreateView(
@@ -66,10 +61,13 @@ class SelectLocationFragment : BaseFragment(),OnMapReadyCallback {
 
 
 //        TODO: call this function after the user confirms on the selected location
-        onLocationSelected()
+        binding.saveButton.setOnClickListener {
+            onLocationSelected()
 
+        }
         return binding.root
     }
+
     override fun onMapReady(googleMap: GoogleMap) {
         map = googleMap
         setMapStyle(map)
@@ -77,7 +75,22 @@ class SelectLocationFragment : BaseFragment(),OnMapReadyCallback {
         setMapLongClick(map)
         setMyLocation()
     }
-    private fun setMyLocation(){
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<String>,
+        grantResults: IntArray) {
+        // Check if location permissions are granted and if so enable the
+        // location data layer.
+        if (requestCode == 1) {
+            if (grantResults.size > 0 && (grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
+//                enableMyLocation()
+                Toast.makeText(requireContext(),"Granted",Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+    private fun setMyLocation() {
+
+
         if (ActivityCompat.checkSelfPermission(
                 requireContext(),
                 Manifest.permission.ACCESS_FINE_LOCATION
@@ -86,48 +99,49 @@ class SelectLocationFragment : BaseFragment(),OnMapReadyCallback {
                 Manifest.permission.ACCESS_COARSE_LOCATION
             ) != PackageManager.PERMISSION_GRANTED
         ) {
-            // TODO: Consider calling
-            //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
+            ActivityCompat.requestPermissions(
+                requireActivity(),
+                arrayOf<String>(Manifest.permission.ACCESS_FINE_LOCATION),
+                1
+            )
             return
         }
         map.isMyLocationEnabled = true
-            fusedLocationClient.lastLocation?.addOnSuccessListener {
-                val snippet = String.format(
-                    Locale.getDefault(),
-                    getString(R.string.lat_long_snippet),
-                    it.latitude,
-                    it.longitude
-                )
-                val myLatLng = LatLng(it.latitude, it.longitude)
+        fusedLocationClient.lastLocation?.addOnSuccessListener {
+            val snippet = String.format(
+                Locale.getDefault(),
+                getString(R.string.lat_long_snippet),
+                it.latitude,
+                it.longitude
+            )
+            val myLatLng = LatLng(it.latitude, it.longitude)
 
-                selectedPointOfInterest = PointOfInterest(myLatLng, snippet, "My Current Location")
+            selectedPointOfInterest = PointOfInterest(myLatLng, snippet, "My Current Location")
 
-                selectedMarker = map.addMarker(
-                    MarkerOptions()
-                        .position(myLatLng)
-                        .title(getString(R.string.reminder_location))
-                        .snippet(snippet)
-                        .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN))
-                )
+            selectedMarker = map.addMarker(
+                MarkerOptions()
+                    .position(myLatLng)
+                    .title(getString(R.string.reminder_location))
+                    .snippet(snippet)
+                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN))
+            )
 
-                val zoomLevel = 18f
+            val zoomLevel = 18f
 
-                map.moveCamera(CameraUpdateFactory.newLatLngZoom(myLatLng, zoomLevel))
+            map.moveCamera(CameraUpdateFactory.newLatLngZoom(myLatLng, zoomLevel))
 
-                selectedMarker.showInfoWindow() }
+            selectedMarker.showInfoWindow()
+        }
+
 
     }
+
     private fun setMapStyle(map: GoogleMap) {
         try {
             val success = map.setMapStyle(
                 MapStyleOptions.loadRawResourceStyle(context, R.raw.map_style)
             )
-            if(!success) {
+            if (!success) {
                 Log.e("Adham", "Style parsing failed.")
             }
 
@@ -135,9 +149,10 @@ class SelectLocationFragment : BaseFragment(),OnMapReadyCallback {
             Log.e("Adham", "Can't find style. Error: ", e)
         }
     }
-    private fun setMapLongClick(map: GoogleMap){
-        map.setOnMapLongClickListener {latLng ->
-            if (this::selectedMarker.isInitialized){
+
+    private fun setMapLongClick(map: GoogleMap) {
+        map.setOnMapLongClickListener { latLng ->
+            if (this::selectedMarker.isInitialized) {
                 selectedMarker.remove()
             }
 
@@ -158,15 +173,15 @@ class SelectLocationFragment : BaseFragment(),OnMapReadyCallback {
                     .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN))
             )
             selectedMarker.showInfoWindow()
-            wrapEspressoIdlingResource{
+            wrapEspressoIdlingResource {
                 _viewModel.locationSelected.postValue(true)
             }
         }
     }
 
-    private fun setPoiClick(map: GoogleMap){
+    private fun setPoiClick(map: GoogleMap) {
         map.setOnPoiClickListener { poi ->
-            if (this::selectedMarker.isInitialized){
+            if (this::selectedMarker.isInitialized) {
                 selectedMarker.remove()
             }
 
@@ -179,7 +194,7 @@ class SelectLocationFragment : BaseFragment(),OnMapReadyCallback {
             selectedPointOfInterest = poi
 
             selectedMarker.showInfoWindow()
-            wrapEspressoIdlingResource{
+            wrapEspressoIdlingResource {
                 _viewModel.locationSelected.postValue(true)
             }
         }
@@ -190,7 +205,13 @@ class SelectLocationFragment : BaseFragment(),OnMapReadyCallback {
         //        TODO: When the user confirms on the selected location,
         //         send back the selected location details to the view model
         //         and navigate back to the previous fragment to save the reminder and add the geofence
-
+        if (this::selectedPointOfInterest.isInitialized) {
+            _viewModel.selectedPOI.value = selectedPointOfInterest
+            _viewModel.reminderSelectedLocationStr.value = selectedPointOfInterest.name
+            _viewModel.latitude.value = selectedPointOfInterest.latLng.latitude
+            _viewModel.longitude.value = selectedPointOfInterest.latLng.longitude
+        }
+        findNavController().popBackStack()
     }
 
 
@@ -201,15 +222,24 @@ class SelectLocationFragment : BaseFragment(),OnMapReadyCallback {
     override fun onOptionsItemSelected(item: MenuItem) = when (item.itemId) {
         // TODO: Change the map type based on the user's selection.
         R.id.normal_map -> {
+            map.mapType = GoogleMap.MAP_TYPE_NORMAL
+
             true
         }
         R.id.hybrid_map -> {
+            map.mapType = GoogleMap.MAP_TYPE_HYBRID
+
             true
         }
         R.id.satellite_map -> {
+            map.mapType = GoogleMap.MAP_TYPE_SATELLITE
+
             true
         }
         R.id.terrain_map -> {
+
+            map.mapType = GoogleMap.MAP_TYPE_TERRAIN
+
             true
         }
         else -> super.onOptionsItemSelected(item)
