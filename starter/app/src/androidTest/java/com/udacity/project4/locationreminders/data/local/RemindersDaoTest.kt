@@ -25,6 +25,53 @@ import org.junit.Test
 @SmallTest
 class RemindersDaoTest {
 
-//    TODO: Add testing implementation to the RemindersDao.kt
+    //    TODO: Add testing implementation to the RemindersDao.kt
+    @get: Rule
+    var instantExecutorRule = InstantTaskExecutorRule()
+
+    private lateinit var reminderDB: RemindersDatabase
+
+    val reminderTestCase = ReminderDTO(
+        "Do Chors",
+        "Clean Home",
+        "Cairop",
+        30.0,
+        31.0,
+        "101"
+    )
+
+    @Before
+    fun initialiseDatabase() {
+        reminderDB = Room.inMemoryDatabaseBuilder(
+            ApplicationProvider.getApplicationContext(),
+            RemindersDatabase::class.java
+        ).build()
+    }
+
+    @After
+    fun closeDatabase() {
+        reminderDB.close()
+    }
+    @Test
+    fun insertReminderDTOAndGetById() = runBlockingTest {
+
+
+        reminderDB.reminderDao().saveReminder(reminderTestCase)
+
+        val savedReminderDTO = reminderDB.reminderDao().getReminderById(reminderTestCase.id)
+
+        assertThat<ReminderDTO>(savedReminderDTO, notNullValue())
+
+        assertThat(savedReminderDTO?.id, `is`(reminderTestCase.id))
+        assertThat(savedReminderDTO?.title, `is`(reminderTestCase.title))
+        assertThat(savedReminderDTO?.description, `is`(reminderTestCase.description))
+        assertThat(savedReminderDTO?.location, `is`(reminderTestCase.location))
+        assertThat(savedReminderDTO?.latitude, `is`(reminderTestCase.latitude))
+        assertThat(savedReminderDTO?.longitude, `is`(reminderTestCase.longitude))
+        assertThat(savedReminderDTO?.id, `is`(reminderTestCase.id))
+    }
+
+
+
 
 }
