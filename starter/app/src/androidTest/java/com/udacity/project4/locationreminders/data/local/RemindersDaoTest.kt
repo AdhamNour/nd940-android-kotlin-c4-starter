@@ -71,6 +71,15 @@ class RemindersDaoTest {
         assertThat(savedReminderDTO?.id, `is`(reminderTestCase.id))
     }
 
+    @Test
+    fun insertAndCleanDatabase() = runBlockingTest {
+
+
+        reminderDB.reminderDao().saveReminder(reminderTestCase)
+        reminderDB.reminderDao().deleteAllReminders()
+        val savedRemindersDTO = reminderDB.reminderDao().getReminders()
+        assertThat(savedRemindersDTO.isEmpty(), `is`(true))
+    }
 
 
 
