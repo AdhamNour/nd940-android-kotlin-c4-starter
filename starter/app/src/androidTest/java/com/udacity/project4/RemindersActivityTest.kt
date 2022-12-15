@@ -107,5 +107,30 @@ fun createReminder() = runBlocking {
     activityScenario.close()
 }
 
+    @Test
+    fun shouldReturnError_noTitle() = runBlocking{
+        val activityScenario = ActivityScenario.launch(RemindersActivity::class.java)
+        dataBindingIdlingResource.monitorActivity(activityScenario)
+
+        Espresso.onView(ViewMatchers.withId(R.id.noDataTextView))
+            .check(ViewAssertions.matches(ViewMatchers.isDisplayed()))
+        Espresso.onView(ViewMatchers.withId(R.id.addReminderFAB)).perform(ViewActions.click())
+
+        Espresso.onView(ViewMatchers.withId(R.id.reminderDescription))
+            .perform(ViewActions.typeText("Description"), ViewActions.closeSoftKeyboard())
+
+        Espresso.onView(ViewMatchers.withId(R.id.selectLocation)).perform(ViewActions.click())
+
+        Espresso.onView(ViewMatchers.withId(R.id.map)).perform(ViewActions.click())
+        Espresso.onView(ViewMatchers.withId(R.id.saveButton)).perform(ViewActions.click())
+
+        Espresso.onView(ViewMatchers.withId(R.id.saveReminder)).perform(ViewActions.click())
+
+        Espresso.onView(ViewMatchers.withText("Please enter title"))
+            .check(ViewAssertions.matches(ViewMatchers.isDisplayed()))
+
+        activityScenario.close()
+    }
+
 
 }
