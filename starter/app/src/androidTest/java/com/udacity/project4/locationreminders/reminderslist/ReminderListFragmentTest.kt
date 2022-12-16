@@ -155,28 +155,7 @@ class ReminderListFragmentTest : AutoCloseKoinTest() {
     }
 
 
-    @Test
-    fun onRefreshLayoutSwipe_showToast() = runBlocking {
-        val fragmentScenario =
-            launchFragmentInContainer<ReminderListFragment>(Bundle(), R.style.AppTheme)
-        dataBindingIdlingResource.monitorFragment(fragmentScenario)
 
-        val reminderDTO = ReminderDTO(
-            "Bangkok",
-            "Capital of Thailand",
-            "Thailand",
-            13.7563,
-            100.5018
-        )
-        repository.saveReminder(reminderDTO)
-
-        onView(withId(R.id.refreshLayout)).perform(ViewActions.swipeDown())
-        onView(withText("Reminders refreshed"))
-            .inRoot(RootMatchers.withDecorView(Matchers.not(ContextUtils.getActivity(appContext)?.window?.decorView)))
-            .check(matches(isDisplayed()))
-
-        repository.deleteAllReminders()
-    }
 
     @Test
     fun shouldShowError_onRefreshLayoutSwipeNoReminders() = runBlocking {

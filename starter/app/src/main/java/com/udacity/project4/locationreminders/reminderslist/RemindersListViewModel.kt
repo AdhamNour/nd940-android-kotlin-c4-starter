@@ -41,6 +41,11 @@ class RemindersListViewModel(
                         )
                     })
                     remindersList.value = dataList
+                    if (dataList.isEmpty()) {
+                        showToast.value = "No reminders found"
+                    } else {
+                        showToast.value = "Reminders refreshed"
+                    }
                 }
                 is Result.Error ->
                     showSnackBar.value = result.message

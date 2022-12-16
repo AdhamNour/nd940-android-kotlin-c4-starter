@@ -38,7 +38,7 @@
                 android:drawableTop="@drawable/ic_no_data"
                 android:fadeVisible="@{viewModel.showNoData.booleanValue()}"
                 android:gravity="center"
-                android:text="@string/no_data"
+                android:text="No reminders found"
                 android:textSize="@dimen/text_size_large"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
