@@ -65,6 +65,14 @@ class ReminderListFragmentTest : AutoCloseKoinTest() {
 
     private lateinit var viewModel: RemindersListViewModel
     private val dataBindingIdlingResource = DataBindingIdlingResource()
+    val reminderDTO = ReminderDTO(
+        "Do SomeChores",
+        "So SomeChores in El-Tahrir Squere",
+        "El-Tahrir Squere",
+        30.7563,
+        31.5018,
+        "1"
+    )
 
     @Before
     fun init() {
@@ -134,13 +142,7 @@ class ReminderListFragmentTest : AutoCloseKoinTest() {
 
     @Test
     fun activeReminders_DisplayedInUi() = runBlocking {
-        val reminderDTO = ReminderDTO(
-            "Bangkok",
-            "Capital of Thailand",
-            "Thailand",
-            13.7563,
-            100.5018
-        )
+
         repository.saveReminder(reminderDTO)
 
         val fragmentScenario =
