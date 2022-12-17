@@ -99,8 +99,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
                 Manifest.permission.ACCESS_COARSE_LOCATION
             ) != PackageManager.PERMISSION_GRANTED
         ) {
-            ActivityCompat.requestPermissions(
-                requireActivity(),
+            requestPermissions(
                 arrayOf<String>(Manifest.permission.ACCESS_FINE_LOCATION),
                 1
             )
