@@ -1,7 +1,9 @@
 package com.udacity.project4.authentication
 
 import android.app.Activity
+import android.content.Context
 import android.content.Intent
+import android.content.SharedPreferences
 import android.os.Bundle
 import android.util.Log
 import android.widget.Button
@@ -24,7 +26,13 @@ class AuthenticationActivity : AppCompatActivity() {
 //         tTODO: Implement the create account and sign in using FirebaseUI, use sign in using email and sign in using Google
 
 //          tTODO: If the user was authenticated, send him to RemindersActivity
-
+        val sharedPref =getSharedPreferences(getString(R.string.logedin), Context.MODE_PRIVATE)
+        val isLogedIn = sharedPref.getBoolean(getString(R.string.isLogedIn),false)
+        if(isLogedIn){
+            val intent = Intent(this, RemindersActivity::class.java)
+            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+            startActivity(intent)
+        }
 //          tTODO: a bonus is to customize the sign in flow to look nice using :
         //https://github.com/firebase/FirebaseUI-Android/blob/master/auth/README.md#custom-layout
         findViewById<Button>(R.id.authenticate_button).setOnClickListener {
@@ -33,6 +41,9 @@ class AuthenticationActivity : AppCompatActivity() {
     }
 
     private fun startAuthenticationWorkFlow() {
+
+
+
         val providers = arrayListOf(
             AuthUI.IdpConfig.EmailBuilder().build(), AuthUI.IdpConfig.GoogleBuilder().build()
         )
@@ -40,7 +51,8 @@ class AuthenticationActivity : AppCompatActivity() {
         startActivityForResult(
             AuthUI.getInstance().createSignInIntentBuilder().setAvailableProviders(
                 providers
-            ).build(), SIGN_IN_CODE
+            )        .setIsSmartLockEnabled(false)
+                .build(), SIGN_IN_CODE
         )
     }
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -51,6 +63,10 @@ class AuthenticationActivity : AppCompatActivity() {
                 val intent = Intent(this, RemindersActivity::class.java)
                 intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
                 startActivity(intent)
+                val sharedPref =getSharedPreferences(getString(R.string.logedin), Context.MODE_PRIVATE)
+                val x  = sharedPref.edit()
+                x.putBoolean(getString(R.string.isLogedIn),true)
+                x.commit()
             } else {
                 Log.i("Auth Failed", "Sign in unsuccessful ${response?.error?.errorCode}")
             }
