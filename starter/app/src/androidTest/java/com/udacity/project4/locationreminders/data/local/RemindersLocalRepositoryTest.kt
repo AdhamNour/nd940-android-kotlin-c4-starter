@@ -73,6 +73,16 @@ class RemindersLocalRepositoryTest {
         assertThat(retrievedReminder.data.id, `is`(reminderDTO.id))
     }
 
+
+    @Test
+    fun retrieveNoReminder() = runBlocking {
+
+        val retrievedReminder = reminderLocalRepo.getReminder("1")
+        assertThat(retrievedReminder is Result.Error, `is`(true))
+
+
+    }
+
     @Test
     fun deleteAllReminders() = runBlocking {
         reminderLocalRepo.deleteAllReminders()
