@@ -66,7 +66,7 @@ class AuthenticationActivity : AppCompatActivity() {
                 val sharedPref =getSharedPreferences(getString(R.string.logedin), Context.MODE_PRIVATE)
                 val x  = sharedPref.edit()
                 x.putBoolean(getString(R.string.isLogedIn),true)
-                x.commit()
+                x.apply()
             } else {
                 Log.i("Auth Failed", "Sign in unsuccessful ${response?.error?.errorCode}")
             }

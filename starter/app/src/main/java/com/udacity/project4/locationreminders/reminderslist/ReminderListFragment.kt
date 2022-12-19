@@ -1,5 +1,6 @@
 package com.udacity.project4.locationreminders.reminderslist
 
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.view.*
@@ -79,7 +80,12 @@ class ReminderListFragment : BaseFragment() {
                 AuthUI.getInstance().signOut(requireContext())
                 val intent = Intent(requireContext(), AuthenticationActivity::class.java)
                 intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
-                startActivity(intent)            }
+                startActivity(intent)
+
+                val sharedPref =requireActivity(). getSharedPreferences(getString(R.string.logedin), Context.MODE_PRIVATE)
+                val x  = sharedPref.edit()
+                x.putBoolean(getString(R.string.isLogedIn),false)
+                x.apply()}
         }
         return super.onOptionsItemSelected(item)
 
