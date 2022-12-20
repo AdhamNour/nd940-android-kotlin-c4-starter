@@ -1,29 +1,31 @@
 package com.udacity.project4.locationreminders.savereminder
 
+import android.Manifest
 import android.annotation.SuppressLint
+import android.annotation.TargetApi
 import android.app.PendingIntent
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Bundle
+import android.provider.Settings
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.app.ActivityCompat
 import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.Observer
-import com.google.android.gms.location.Geofence
-import com.google.android.gms.location.GeofencingClient
-import com.google.android.gms.location.GeofencingRequest
-import com.google.android.gms.location.LocationServices
+import com.google.android.gms.location.*
 import com.google.android.material.snackbar.Snackbar
+import com.udacity.project4.BuildConfig
 import com.udacity.project4.R
 import com.udacity.project4.base.BaseFragment
 import com.udacity.project4.base.NavigationCommand
 import com.udacity.project4.databinding.FragmentSaveReminderBinding
 import com.udacity.project4.locationreminders.geofence.GeofenceBroadcastReceiver
 import com.udacity.project4.locationreminders.reminderslist.ReminderDataItem
-import com.udacity.project4.utils.hasAllLocationPermissions
-import com.udacity.project4.utils.setDisplayHomeAsUpEnabled
-import com.udacity.project4.utils.showPermissionSnackBar
+import com.udacity.project4.utils.*
 import org.koin.android.ext.android.inject
 
 class SaveReminderFragment : BaseFragment() {
@@ -55,8 +57,8 @@ class SaveReminderFragment : BaseFragment() {
 
         _viewModel.showSnackBarInt.observe(viewLifecycleOwner, Observer {
             Snackbar.make(
-                    binding.root,
-                    it, Snackbar.LENGTH_LONG
+                binding.root,
+                it, Snackbar.LENGTH_LONG
             ).setAction(android.R.string.ok) {
                 //Do nothing?
             }.show()
@@ -93,38 +95,50 @@ class SaveReminderFragment : BaseFragment() {
             if(canSave) {
 
                 val geofence = Geofence.Builder()
-                        .setRequestId(id)
-                        .setCircularRegion(latitude,
-                                longitude,
-                                100f
-                        )
-                        .setExpirationDuration(Geofence.NEVER_EXPIRE)
-                        .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_ENTER)
-                        .build()
+                    .setRequestId(id)
+                    .setCircularRegion(latitude,
+                        longitude,
+                        100f
+                    )
+                    .setExpirationDuration(Geofence.NEVER_EXPIRE)
+                    .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_ENTER)
+                    .build()
 
                 val geofencingRequest = GeofencingRequest.Builder()
-                        .setInitialTrigger(GeofencingRequest.INITIAL_TRIGGER_ENTER)
-                        .addGeofence(geofence)
-                        .build()
+                    .setInitialTrigger(GeofencingRequest.INITIAL_TRIGGER_ENTER)
+                    .addGeofence(geofence)
+                    .build()
 
 //             TODO 2) save the reminder to the local db
-                if (requireActivity().hasAllLocationPermissions())  {
-                    geofencingClient.addGeofences(geofencingRequest, geofencePendingIntent).run {
-                        addOnFailureListener {
-                            Log.v("Geofence", "Failed adding..." + it.message)
-                        }
-                        addOnSuccessListener {
-                            _viewModel.validateAndSaveReminder(ReminderDataItem(title, description, location, latitude, longitude, geofence.requestId))
-                            Log.v("Geofence", "Added successfully...")
-                        }
+                requireActivity().getLocationRequestTask().addOnSuccessListener {
+
+                    if (requireActivity().hasAllLocationPermissions()) {
+                        geofencingClient.addGeofences(geofencingRequest, geofencePendingIntent)
+                            .run {
+                                addOnFailureListener {
+                                    Log.v("Geofence", "Failed adding..." + it.message)
+                                }
+                                addOnSuccessListener {
+                                    _viewModel.validateAndSaveReminder(
+                                        ReminderDataItem(
+                                            title,
+                                            description,
+                                            location,
+                                            latitude,
+                                            longitude,
+                                            geofence.requestId
+                                        )
+                                    )
+                                    Log.v("Geofence", "Added successfully...")
+                                }
+                            }
+
+                    } else {
+                        requireActivity().requestBaseLocationPermissions()
                     }
-
-                } else {
-                    requireActivity().showPermissionSnackBar(binding.root)
                 }
-
             }
-            }
+        }
     }
 
     override fun onDestroy() {

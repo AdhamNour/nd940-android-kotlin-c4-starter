@@ -124,20 +124,20 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
             }
 
             val snippet = String.format(
-                    Locale.getDefault(),
-                    getString(R.string.lat_long_snippet),
-                    latLng.latitude,
-                    latLng.longitude
+                Locale.getDefault(),
+                getString(R.string.lat_long_snippet),
+                latLng.latitude,
+                latLng.longitude
             )
 
             selectedPointOfInterest = PointOfInterest(latLng, snippet, snippet)
 
             selectedMarker = map.addMarker(
-                    MarkerOptions()
-                            .position(latLng)
-                            .title(getString(R.string.reminder_location))
-                            .snippet(snippet)
-                            .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN))
+                MarkerOptions()
+                    .position(latLng)
+                    .title(getString(R.string.reminder_location))
+                    .snippet(snippet)
+                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN))
             )
             selectedMarker.showInfoWindow()
             wrapEspressoIdlingResource{
@@ -153,9 +153,9 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
             }
 
             selectedMarker = map.addMarker(
-                    MarkerOptions()
-                            .position(poi.latLng)
-                            .title(poi.name)
+                MarkerOptions()
+                    .position(poi.latLng)
+                    .title(poi.name)
             )
 
             selectedPointOfInterest = poi
@@ -170,7 +170,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
     private fun setMapStyle(map: GoogleMap){
         try {
             val success = map.setMapStyle(
-                    MapStyleOptions.loadRawResourceStyle(context, R.raw.map_style)
+                MapStyleOptions.loadRawResourceStyle(context, R.raw.map_style)
             )
             if(!success) {
                 Log.e(TAG, "Style parsing failed.")
@@ -188,21 +188,21 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
             map.isMyLocationEnabled = true
             fusedLocationClient.lastLocation?.addOnSuccessListener {
                 val snippet = String.format(
-                        Locale.getDefault(),
-                        getString(R.string.lat_long_snippet),
-                        it.latitude,
-                        it.longitude
+                    Locale.getDefault(),
+                    getString(R.string.lat_long_snippet),
+                    it.latitude,
+                    it.longitude
                 )
                 val myLatLng = LatLng(it.latitude, it.longitude)
 
                 selectedPointOfInterest = PointOfInterest(myLatLng, snippet, "My Current Location")
 
                 selectedMarker = map.addMarker(
-                        MarkerOptions()
-                                .position(myLatLng)
-                                .title(getString(R.string.reminder_location))
-                                .snippet(snippet)
-                                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN))
+                    MarkerOptions()
+                        .position(myLatLng)
+                        .title(getString(R.string.reminder_location))
+                        .snippet(snippet)
+                        .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN))
                 )
 
                 val zoomLevel = 18f
@@ -211,7 +211,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
 
                 selectedMarker.showInfoWindow() }
         } else {
-            requireActivity().showPermissionSnackBar(binding.root)
+            requireActivity().requestBaseLocationPermissions()
         }
     }
 

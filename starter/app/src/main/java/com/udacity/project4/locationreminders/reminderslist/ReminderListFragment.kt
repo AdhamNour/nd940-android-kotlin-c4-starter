@@ -1,6 +1,5 @@
 package com.udacity.project4.locationreminders.reminderslist
 
-import android.content.Context
 import android.content.Intent
 import android.content.IntentSender
 import android.content.pm.PackageManager
@@ -51,7 +50,6 @@ class ReminderListFragment : BaseFragment() {
         setDisplayHomeAsUpEnabled(false)
         setTitle(getString(R.string.app_name))
 
-        checkDeviceLocationSettings()
 
         binding.refreshLayout.setOnRefreshListener { _viewModel.loadReminders(true) }
 
@@ -72,16 +70,18 @@ class ReminderListFragment : BaseFragment() {
         setupRecyclerView()
 
         binding.addReminderFAB.setOnClickListener {
-            hasBaseLocationPermissions = requireActivity().hasBaseLocationPermissions()
-            if(hasBaseLocationPermissions){
-                if(requireActivity().hasAllLocationPermissions()){
-                    navigateToAddReminder()
-                } else {
-                    requireActivity().showPermissionSnackBar(binding.root)
-                }
-            } else {
-                requireActivity().requestBaseLocationPermissions()
-            }
+            navigateToAddReminder()
+
+//            hasBaseLocationPermissions = requireActivity().hasBaseLocationPermissions()
+//            if(hasBaseLocationPermissions){
+//                if(requireActivity().hasAllLocationPermissions()){
+//                    navigateToAddReminder()
+//                } else {
+//                    requireActivity().showPermissionSnackBar(binding.root)
+//                }
+//            } else {
+//                requireActivity().requestBaseLocationPermissions()
+//            }
 
         }
     }
@@ -113,10 +113,6 @@ class ReminderListFragment : BaseFragment() {
         when (item.itemId) {
             R.id.logout -> {
 //                TODO: add the logout implementation
-                val sharedPref =requireActivity().getSharedPreferences(getString(R.string.logedin), Context.MODE_PRIVATE)
-                val x  = sharedPref.edit()
-                x.putBoolean(getString(R.string.isLogedIn),false)
-                x.apply()
                 AuthUI.getInstance().signOut(requireContext())
                 val intent = Intent(requireContext(), AuthenticationActivity::class.java)
                 intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
@@ -141,30 +137,30 @@ class ReminderListFragment : BaseFragment() {
     }
 
     override fun onRequestPermissionsResult(
-            requestCode: Int,
-            permissions: Array<String>,
-            grantResults: IntArray
+        requestCode: Int,
+        permissions: Array<String>,
+        grantResults: IntArray
     ) {
 
         if (grantResults.isEmpty() ||
-                grantResults[LOCATION_PERMISSION_INDEX] == PackageManager.PERMISSION_DENIED ||
-                (requestCode == REQUEST_LOCATION_PERMISSION &&
-                        grantResults[BACKGROUND_LOCATION_PERMISSION_INDEX] ==
-                        PackageManager.PERMISSION_DENIED))
+            grantResults[LOCATION_PERMISSION_INDEX] == PackageManager.PERMISSION_DENIED ||
+            (requestCode == REQUEST_LOCATION_PERMISSION &&
+                    grantResults[BACKGROUND_LOCATION_PERMISSION_INDEX] ==
+                    PackageManager.PERMISSION_DENIED))
         {
             Log.v(TAG, "Permissions not granted")
             Snackbar.make(
-                    binding.root,
-                    R.string.permission_denied_explanation, Snackbar.LENGTH_INDEFINITE
+                binding.root,
+                R.string.permission_denied_explanation, Snackbar.LENGTH_INDEFINITE
             )
-                    .setAction(R.string.settings) {
-                        // Displays App settings screen.
-                        startActivity(Intent().apply {
-                            action = Settings.ACTION_APPLICATION_DETAILS_SETTINGS
-                            data = Uri.fromParts("package", BuildConfig.APPLICATION_ID, null)
-                            flags = Intent.FLAG_ACTIVITY_NEW_TASK
-                        })
-                    }.show()
+                .setAction(R.string.settings) {
+                    // Displays App settings screen.
+                    startActivity(Intent().apply {
+                        action = Settings.ACTION_APPLICATION_DETAILS_SETTINGS
+                        data = Uri.fromParts("package", BuildConfig.APPLICATION_ID, null)
+                        flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                    })
+                }.show()
         } else {
             checkDeviceLocationSettings()
         }
