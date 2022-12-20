@@ -1,6 +1,5 @@
 package com.udacity.project4.base
 
-import android.util.Log
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
@@ -33,10 +32,7 @@ abstract class BaseFragment : Fragment() {
 
         _viewModel.navigationCommand.observe(this, Observer { command ->
             when (command) {
-                is NavigationCommand.To -> {
-                    Log.d("Adham", " Supposed To Navigate")
-                    findNavController().navigate(command.directions)
-                }
+                is NavigationCommand.To -> findNavController().navigate(command.directions)
                 is NavigationCommand.Back -> findNavController().popBackStack()
                 is NavigationCommand.BackTo -> findNavController().popBackStack(
                     command.destinationId,

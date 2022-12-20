@@ -2,25 +2,40 @@ package com.udacity.project4.locationreminders.reminderslist
 
 import android.content.Context
 import android.content.Intent
+import android.content.IntentSender
+import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Bundle
+import android.provider.Settings
+import android.util.Log
 import android.view.*
 import android.widget.Toast
 import androidx.databinding.DataBindingUtil
+import androidx.lifecycle.Observer
 import com.firebase.ui.auth.AuthUI
+import com.google.android.material.snackbar.Snackbar
+import com.udacity.project4.BuildConfig
 import com.udacity.project4.R
 import com.udacity.project4.authentication.AuthenticationActivity
 import com.udacity.project4.base.BaseFragment
 import com.udacity.project4.base.NavigationCommand
 import com.udacity.project4.databinding.FragmentRemindersBinding
-import com.udacity.project4.utils.setDisplayHomeAsUpEnabled
-import com.udacity.project4.utils.setTitle
-import com.udacity.project4.utils.setup
+import com.udacity.project4.utils.*
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
+private val TAG = ReminderListFragment::class.java.simpleName
+private const val LOCATION_PERMISSION_INDEX = 0
+private const val BACKGROUND_LOCATION_PERMISSION_INDEX = 1
+private const val REQUEST_LOCATION_PERMISSION = 1
+
 class ReminderListFragment : BaseFragment() {
+
     //use Koin to retrieve the ViewModel instance
     override val _viewModel: RemindersListViewModel by viewModel()
     private lateinit var binding: FragmentRemindersBinding
+
+    private var hasBaseLocationPermissions = false
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -36,7 +51,17 @@ class ReminderListFragment : BaseFragment() {
         setDisplayHomeAsUpEnabled(false)
         setTitle(getString(R.string.app_name))
 
-        binding.refreshLayout.setOnRefreshListener { _viewModel.loadReminders() }
+        checkDeviceLocationSettings()
+
+        binding.refreshLayout.setOnRefreshListener { _viewModel.loadReminders(true) }
+
+        _viewModel.showLoading.observe(viewLifecycleOwner, Observer{
+            binding.refreshLayout.isRefreshing = it
+        })
+
+        _viewModel.showToast.observe(viewLifecycleOwner, Observer {
+            Toast.makeText(requireContext(), it, Toast.LENGTH_SHORT).show()
+        })
 
         return binding.root
     }
@@ -45,8 +70,19 @@ class ReminderListFragment : BaseFragment() {
         super.onViewCreated(view, savedInstanceState)
         binding.lifecycleOwner = this
         setupRecyclerView()
+
         binding.addReminderFAB.setOnClickListener {
-            navigateToAddReminder()
+            hasBaseLocationPermissions = requireActivity().hasBaseLocationPermissions()
+            if(hasBaseLocationPermissions){
+                if(requireActivity().hasAllLocationPermissions()){
+                    navigateToAddReminder()
+                } else {
+                    requireActivity().showPermissionSnackBar(binding.root)
+                }
+            } else {
+                requireActivity().requestBaseLocationPermissions()
+            }
+
         }
     }
 
@@ -77,15 +113,15 @@ class ReminderListFragment : BaseFragment() {
         when (item.itemId) {
             R.id.logout -> {
 //                TODO: add the logout implementation
+                val sharedPref =requireActivity().getSharedPreferences(getString(R.string.logedin), Context.MODE_PRIVATE)
+                val x  = sharedPref.edit()
+                x.putBoolean(getString(R.string.isLogedIn),false)
+                x.apply()
                 AuthUI.getInstance().signOut(requireContext())
                 val intent = Intent(requireContext(), AuthenticationActivity::class.java)
                 intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
                 startActivity(intent)
-
-                val sharedPref =requireActivity(). getSharedPreferences(getString(R.string.logedin), Context.MODE_PRIVATE)
-                val x  = sharedPref.edit()
-                x.putBoolean(getString(R.string.isLogedIn),false)
-                x.apply()}
+            }
         }
         return super.onOptionsItemSelected(item)
 
@@ -97,4 +133,49 @@ class ReminderListFragment : BaseFragment() {
         inflater.inflate(R.menu.main_menu, menu)
     }
 
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == REQUEST_LOCATION_PERMISSION) {
+            checkDeviceLocationSettings(false)
+        }
+    }
+
+    override fun onRequestPermissionsResult(
+            requestCode: Int,
+            permissions: Array<String>,
+            grantResults: IntArray
+    ) {
+
+        if (grantResults.isEmpty() ||
+                grantResults[LOCATION_PERMISSION_INDEX] == PackageManager.PERMISSION_DENIED ||
+                (requestCode == REQUEST_LOCATION_PERMISSION &&
+                        grantResults[BACKGROUND_LOCATION_PERMISSION_INDEX] ==
+                        PackageManager.PERMISSION_DENIED))
+        {
+            Log.v(TAG, "Permissions not granted")
+            Snackbar.make(
+                    binding.root,
+                    R.string.permission_denied_explanation, Snackbar.LENGTH_INDEFINITE
+            )
+                    .setAction(R.string.settings) {
+                        // Displays App settings screen.
+                        startActivity(Intent().apply {
+                            action = Settings.ACTION_APPLICATION_DETAILS_SETTINGS
+                            data = Uri.fromParts("package", BuildConfig.APPLICATION_ID, null)
+                            flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                        })
+                    }.show()
+        } else {
+            checkDeviceLocationSettings()
+        }
+    }
+
+    private fun checkDeviceLocationSettings(resolve:Boolean = true) {
+        requireActivity().getLocationRequestTask(resolve).addOnSuccessListener {
+            hasBaseLocationPermissions = true
+        }
+    }
+
 }
+
+
