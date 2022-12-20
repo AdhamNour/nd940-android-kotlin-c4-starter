@@ -53,7 +53,7 @@ class GeofenceTransitionsJobIntentService : JobIntentService(), CoroutineScope {
         for (geofence in triggeringGeofences) {
 
 
-            val requestId = triggeringGeofences[0].requestId
+            val requestId = geofence.requestId
 
             //Get the local repository instance
             val remindersLocalRepository: ReminderDataSource by inject()
