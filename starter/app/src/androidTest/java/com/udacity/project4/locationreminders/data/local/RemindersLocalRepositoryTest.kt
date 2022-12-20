@@ -80,7 +80,7 @@ class RemindersLocalRepositoryTest {
         val retrievedReminder = reminderLocalRepo.getReminder("1")
         assertThat(retrievedReminder is Result.Error, `is`(true))
         retrievedReminder as Result.Error
-        assertThat(retrievedReminder.message, `is`("Reminder not found"))
+        assertThat(retrievedReminder.message, `is`("Reminder not found!"))
 
 
     }
