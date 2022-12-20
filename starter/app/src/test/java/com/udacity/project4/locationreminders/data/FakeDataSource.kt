@@ -24,7 +24,7 @@ class FakeDataSource(var reminders: MutableList<ReminderDTO> ) :
     override suspend fun getReminder(id: String): Result<ReminderDTO> {
 //        TODO("return the reminder with the id")
         val reminder = reminders?.firstOrNull() { it.id == id }
-        return if(shouldReturnError) Result.Error("Reminder not found")
+        return if(shouldReturnError) Result.Error("Something went wrong")
         else if (reminder != null) Result.Success(reminder)
         else Result.Error("Reminder not found")
     }
