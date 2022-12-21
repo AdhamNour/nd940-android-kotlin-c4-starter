@@ -29,6 +29,8 @@ import com.udacity.project4.utils.*
 import org.koin.android.ext.android.inject
 
 class SaveReminderFragment : BaseFragment() {
+    private var hasBaseLocationPermissions: Boolean =false;
+
     //Get the view model this time as a single to be shared with the another fragment
     override val _viewModel: SaveReminderViewModel by inject()
     private lateinit var binding: FragmentSaveReminderBinding
@@ -52,6 +54,9 @@ class SaveReminderFragment : BaseFragment() {
             DataBindingUtil.inflate(inflater, R.layout.fragment_save_reminder, container, false)
 
         setDisplayHomeAsUpEnabled(true)
+        requireActivity().getLocationRequestTask().addOnSuccessListener {
+            hasBaseLocationPermissions = true
+        }
 
         binding.viewModel = _viewModel
 
@@ -110,33 +115,39 @@ class SaveReminderFragment : BaseFragment() {
                     .build()
 
 //             TODO 2) save the reminder to the local db
-                requireActivity().getLocationRequestTask().addOnSuccessListener {
 
-                    if (requireActivity().hasAllLocationPermissions()) {
-                        geofencingClient.addGeofences(geofencingRequest, geofencePendingIntent)
-                            .run {
-                                addOnFailureListener {
-                                    Log.v("Geofence", "Failed adding..." + it.message)
-                                }
-                                addOnSuccessListener {
-                                    _viewModel.validateAndSaveReminder(
-                                        ReminderDataItem(
-                                            title,
-                                            description,
-                                            location,
-                                            latitude,
-                                            longitude,
-                                            geofence.requestId
-                                        )
-                                    )
-                                    Log.v("Geofence", "Added successfully...")
-                                }
+                //            hasBaseLocationPermissions = requireActivity().hasBaseLocationPermissions()
+            if(hasBaseLocationPermissions){
+                if (requireActivity().hasAllLocationPermissions()) {
+                    geofencingClient.addGeofences(geofencingRequest, geofencePendingIntent)
+                        .run {
+                            addOnFailureListener {
+                                Log.v("Geofence", "Failed adding..." + it.message)
                             }
+                            addOnSuccessListener {
+                                _viewModel.validateAndSaveReminder(
+                                    ReminderDataItem(
+                                        title,
+                                        description,
+                                        location,
+                                        latitude,
+                                        longitude,
+                                        geofence.requestId
+                                    )
+                                )
+                                Log.v("Geofence", "Added successfully...")
+                            }
+                        }
 
-                    } else {
-                        requireActivity().requestBaseLocationPermissions()
-                    }
+                } else {
+                    requireActivity().showPermissionSnackBar(binding.root)
                 }
+            } else {
+                requireActivity().requestBaseLocationPermissions()
+            }
+
+
+
             }
         }
     }
