@@ -184,7 +184,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
 
     @SuppressLint("MissingPermission")
     private fun setMyLocation(){
-        if(requireActivity().hasAllLocationPermissions()){
+        if(requireActivity().hasBaseLocationPermissions()){
             map.isMyLocationEnabled = true
             fusedLocationClient.lastLocation?.addOnSuccessListener {
                 val snippet = String.format(
@@ -211,7 +211,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
 
                 selectedMarker.showInfoWindow() }
         } else {
-            requireActivity().requestBaseLocationPermissions()
+            requireActivity().showPermissionSnackBar(binding.root)
         }
     }
 
