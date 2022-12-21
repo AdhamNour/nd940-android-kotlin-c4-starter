@@ -72,7 +72,7 @@ class RemindersListViewModelTest {
         remindersListViewModel.loadReminders()
         MatcherAssert.assertThat(
             remindersListViewModel.showSnackBar.getOrAwaitValue(),
-            CoreMatchers.`is`("Reminder not found")
+            CoreMatchers.`is`("Something went wrong")
         )
     }
 
