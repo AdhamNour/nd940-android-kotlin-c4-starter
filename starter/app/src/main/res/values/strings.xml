@@ -43,4 +43,9 @@
     <string name="authenticate">Authenticate</string>
     <string name="logedin">logedin</string>
     <string name="isLogedIn">isLogedIn</string>
+    <string name="reminder_geo_saved">Reminder georeference added !</string>
+    <string name="enter_location_description">Please enter location description</string>
+    <string name="enter_location_title">Please enter location title</string>
+    <string name="permission_denied_explanation_2">Permision denied</string>
+    <string name="select_loc_message">Select Loction Please</string>
 </resources>

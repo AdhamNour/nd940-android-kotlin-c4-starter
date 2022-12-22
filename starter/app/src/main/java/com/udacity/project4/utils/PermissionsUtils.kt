@@ -23,7 +23,7 @@ import com.google.android.material.snackbar.Snackbar
 import com.udacity.project4.BuildConfig
 import com.udacity.project4.R
 
-private val REQUEST_LOCATION_PERMISSION = 1
+val REQUEST_LOCATION_PERMISSION = 1
 
 //Check the base location permissions required for all versions of Android
 fun Activity.hasBaseLocationPermissions(): Boolean {
